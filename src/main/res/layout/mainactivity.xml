@@ -51,9 +51,6 @@
       android:shownWeekCount="5"
       android:layout_gravity="center_horizontal" android:layout_centerHorizontal="true"
       android:gravity="center" android:textAlignment="center"
-      android:theme="@style/DatePickerHeaderStyle"
-      android:dateTextAppearance="@style/DatePickerHeaderStyle"
-      android:weekDayTextAppearance="@style/DatePickerHeaderStyle"
     />
   </RelativeLayout> 
 
