@@ -5,13 +5,6 @@ package com.quoinsight.legacy;
   https://developer.android.com/reference/android/widget/DatePicker
 */
 
-import android.graphics.Color;
-import android.graphics.drawable.Drawable;
-import android.os.Bundle;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.widget.Toast;
-
 public class MainActivity extends android.app.Activity {
 
   //////////////////////////////////////////////////////////////////////
@@ -35,18 +28,25 @@ public class MainActivity extends android.app.Activity {
       // }, hourArr = new String[] { "子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥", "子" }
       }, hourArr = new String[] { "子zǐ", "丑chǒu", "寅yín", "卯mǎo", "辰chén", "巳sì", "午wǔ", "未wèi", "申shēn", "酉yǒu", "戌xū", "亥hài", "子zǐ" }
     ;
-    java.util.Calendar cal = java.util.Calendar.getInstance();  cal.setTime(date);
-    ChineseCalendar c = new ChineseCalendar();
-      c.setGregorian(cal.get(java.util.Calendar.YEAR), cal.get(java.util.Calendar.MONTH)+1, cal.get(java.util.Calendar.DAY_OF_MONTH));
-      c.computeChineseFields();
-      c.computeSolarTerms();
-    String dateStr = ( (c.chineseMonth<0) ? "闰" : "" )
-      + monthArr[Math.abs(c.chineseMonth)-1] + "月" // MONTH==0..11
-      + dayArr[c.chineseDate-1] // DAY_OF_MONTH==1..31
-      + "⁄" + c.daysInChineseMonth(c.chineseYear, c.chineseMonth)
-      // + hourArr[(int)(cal.get(java.util.Calendar.HOUR_OF_DAY)+1)/2] + "时" // HOUR_OF_DAY==0..23
-      ;
-    return dateStr;
+    String debug = "";
+    try {
+      java.util.Calendar cal = java.util.Calendar.getInstance();  cal.setTime(date);
+      ChineseCalendar c = new ChineseCalendar();
+        c.setGregorian(cal.get(java.util.Calendar.YEAR), cal.get(java.util.Calendar.MONTH)+1, cal.get(java.util.Calendar.DAY_OF_MONTH));
+        c.computeChineseFields();
+        c.computeSolarTerms();
+      String dateStr = ( (c.chineseMonth<0) ? "闰" : "" )
+        + monthArr[Math.abs(c.chineseMonth)-1] + "月" // MONTH==0..11
+        + dayArr[c.chineseDate-1] // DAY_OF_MONTH==1..31
+        + "⁄" + c.daysInChineseMonth(c.chineseYear, c.chineseMonth)
+        // + hourArr[(int)(cal.get(java.util.Calendar.HOUR_OF_DAY)+1)/2] + "时" // HOUR_OF_DAY==0..23
+        ;
+      return dateStr;
+    } catch(Exception e) {
+      // some devices or versions may not support this
+      // commonGui.writeMessage(MainActivity.this, "MainActivity.getChineseDateStr1", debug + "::" + e.getMessage() );
+    }
+    return "<ChineseDateUnavailable/>";
   }
 
   static final public String getChineseDateStr(java.util.Date date) {
@@ -136,8 +136,67 @@ public class MainActivity extends android.app.Activity {
 
   //////////////////////////////////////////////////////////////////////
 
-  @Override protected void onCreate(Bundle savedInstanceState) {
+  static final public void quit(final android.app.Activity parentActivity) {
+    android.app.AlertDialog.Builder alrt = new android.app.AlertDialog.Builder((android.content.Context)parentActivity);
+    alrt.setMessage("Are you sure?").setPositiveButton("Yes", new android.content.DialogInterface.OnClickListener() {
+      @Override public void onClick(android.content.DialogInterface dialog, int which) {
+        /*
+        switch (which) {
+          case android.content.DialogInterface.BUTTON_POSITIVE:
+            //Yes button clicked
+            break;
+        }
+        */
+
+        parentActivity.finishAffinity();
+        //finishAndRemoveTask();
+
+        /*
+          https://stackoverflow.com/questions/22166282/close-application-and-remove-from-recent-apps
+          Note: this won't address the availability of "force stop" in the application info.
+            Android allows you to force stop an application even if it does not have any processes running.
+            Force stop puts the package into a specific stopped state, where it can't receive broadcast events.
+        */
+
+        // System.exit(0);
+      }
+    }).setNegativeButton("No", null).show();
+  }
+
+  //////////////////////////////////////////////////////////////////////
+
+  // ⋮OptionsMenu vs. ≡NavigationDrawer
+  private static final int NEW_MENU_ID=android.view.Menu.FIRST+1;
+  @Override public boolean onCreateOptionsMenu(android.view.Menu menu) {
+    super.onCreateOptionsMenu(menu);
+    menu.add(0, 88, 0, "ⓘ About"); 
+    menu.add(0, 99, 0, "⏏ Quit"); 
+    return true;
+  }
+  @Override public boolean onOptionsItemSelected(android.view.MenuItem item) {
+    switch (item.getItemId()) {
+      case 88:
+        startActivity(new android.content.Intent(this.getApplicationContext(), WebViewActivity.class));
+        return true;
+      case 99:
+        quit(this);
+        return true;
+      default:
+        break;
+    }
+    return false;
+  }
+
+  //////////////////////////////////////////////////////////////////////
+
+  @Override protected void onCreate(android.os.Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
+
+    //if ( android.os.Build.VERSION.SDK_INT > 19 ) {
+    //  commonGui.writeMessage(this, "MainActivity.setContentView", "android.os.Build.VERSION.SDK_INT=" + String.valueOf(android.os.Build.VERSION.SDK_INT));
+    //  return;
+    //}
+
     setContentView(R.layout.mainactivity);
 
     try {
@@ -167,7 +226,7 @@ public class MainActivity extends android.app.Activity {
               )).format(date) +  " " + getChineseDateStr1(date);
 
               // display the selected date by using a toast
-              Toast.makeText(getApplicationContext(), dateString, Toast.LENGTH_SHORT).show();
+              android.widget.Toast.makeText(getApplicationContext(), dateString, android.widget.Toast.LENGTH_SHORT).show();
             }
           }
         );
@@ -194,7 +253,7 @@ public class MainActivity extends android.app.Activity {
         txt9.setText(android.text.Html.fromHtml(txt9.getText().toString()));
         txt9.setText(android.text.Html.fromHtml(
           " [ <A href='https://github.com/QuoInsight/legacy.apk'>src</A> ] "
-           + " [ <A href='https://github.com/QuoInsight/minimal.apk/raw/master/bin/quoinsight-legacy.apk'>apk</A> ] "
+           + " [ <A href='https://github.com/QuoInsight/legacy.apk/raw/master/bin/quoinsight.apk'>apk</A> ] "
              + " [ <A href='https://play.google.com/store/apps/details?id=com.quoinsight.legacy'>store</A> ] "
             + " [ <A href='https://sites.google.com/site/quoinsight/home/legacy-apk'>about</A> ] "
         ));
