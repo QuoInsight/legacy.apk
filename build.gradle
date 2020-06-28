@@ -16,7 +16,7 @@ android {
   defaultConfig {
       minSdkVersion 9      // Both new apps and app updates must target at least Android 9
       targetSdkVersion 28  // 19==KitKat/4.4, to be accepted by Google Play Store, this need to be >=28 !!
-      versionCode 3        // A positive integer used as an internal version number
+      versionCode 5        // A positive integer used as an internal version number
       versionName "0.1"
   }
 }
